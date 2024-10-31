@@ -1,38 +1,38 @@
-import { Children, createContext, useContext, useState} from 'react'
-import { useSession } from '../hooks/useSession.js';
+import {  createContext, useState, useContext } from 'react'
 
 export const SessionContext = createContext();
 
-export const SessionProvider = ({ Children }) =>{
-    const [ session, setSession ]  = useState(null);
+export function SessionProvider ({ children }) {
+    const [ isAuthenticated, setIsAuthenthicated ]  = useState(false);
+    const [user, setUser] = useState(null);
+    const [error, setError] = useState(null);
     
-    const login = async(credentials) => {
+    const login = async({username, password}) => {
         try {
-            const response = await fetch(``,{
-                method: POST,
-                credentials: 'include',
-                headers: {'Content Type': "application/json"},
-                body: JSON.stringify(credentials)
-            })
-            const data = await response.json();
-
-            if(data.token){
-                setSession({user: data.user, token: data.token});
+            if(username === 'admin' && password === "password"){
+                setIsAuthenthicated(true);
+                setUser({name:'Admin'});
             } else{
-                throw new error(data.message || "Error de autenticación");
+                setError("Credenciales incorrectas");
             }
-        } catch (error) {
-            console.error("Error al iniciar sesión", error.message);
+            
+        } catch (err) {
+            console.error("Error al iniciar sesión");
         }
     };
 
     const logout = () =>{
-        setSession(null);
+        setIsAuthenthicated(false);
+        setUser(null);
     };
 
     return(
-        <SessionContext.Provider value = {{session, login, logout}}>
-        {Children}
+        <SessionContext.Provider value = {{isAuthenticated, user, login, logout, error}}>
+        {children}
         </SessionContext.Provider>
     );
 };
+
+export function useSession(){
+    return useContext(SessionContext);
+}
